@@ -1,42 +1,77 @@
 import 'package:flutter/material.dart';
-import 'package:g_captcha/g_captcha.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:flutter_recaptcha_v2/flutter_recaptcha_v2.dart';
 
-// TODO
-const String CAPTCHA_SITE_KEY = "6LcKqfQUAAAAAC1I5Bjg0WI9RMc6wK9gjwG29Nr3";
+void main() => runApp(MyApp());
 
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatefulWidget {
-  @override
-  _MyAppState createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
+class MyApp extends StatelessWidget {
+  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-          appBar: AppBar(
-            title: const Text('Plugin example app'),
-          ),
-          body: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              RaisedButton(onPressed: _openReCaptcha, child: Text('reCaptcha')),
-            ],
-          )),
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: MyHomePage(title: 'Google ReCaptcha Demo'),
     );
   }
+}
 
-  _openReCaptcha() async {
-    String tokenResult = await GCaptcha.reCaptcha(CAPTCHA_SITE_KEY);
-    print('tokenResult: $tokenResult');
-    Fluttertoast.showToast(msg: tokenResult, timeInSecForIosWeb: 4);
+class MyHomePage extends StatefulWidget {
+  MyHomePage({Key key, this.title}) : super(key: key);
 
-    // setState
+  final String title;
+
+  @override
+  _MyHomePageState createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  String verifyResult = "";
+
+  RecaptchaV2Controller recaptchaV2Controller = RecaptchaV2Controller();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.title),
+      ),
+      body: Stack(
+        children: <Widget>[
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                RaisedButton(
+                  child: Text("SHOW ReCAPTCHA"),
+                  onPressed: () {
+                    recaptchaV2Controller.show();
+                  },
+                ),
+                Text(verifyResult),
+              ],
+            ),
+          ),
+          RecaptchaV2(
+            apiKey: "6LeCwZYUAAAAAJo8IVvGX9dH65Rw89vxaxErCeou",
+            apiSecret: "6LeCwZYUAAAAAKGahIjwfOARevvRETgvwhPMKCs_",
+            controller: recaptchaV2Controller,
+            onVerifiedError: (err){
+              print(err);
+            },
+            onVerifiedSuccessfully: (success) {
+              setState(() {
+                if (success) {
+                  verifyResult = "You've been verified successfully.";
+                } else {
+                  verifyResult = "Failed to verify.";
+                }
+              });
+            },
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -1,76 +1,77 @@
-## Flutter g_captcha 
-A flutter plugin for [reCAPTCHA](https://developers.google.com/recaptcha/intro) [v2 - android](https://developer.android.com/training/safetynet/recaptcha.html). The FREE anti-abuse service.
+# flutter_recaptcha_v2
 
-## What is reCAPTCHA?
-reCAPTCHA is a free service that protects your site from spam and abuse. It uses advanced risk analysis engine to tell humans and bots apart. With the new API, a significant number of your valid human users will pass the reCAPTCHA challenge without having to solve a CAPTCHA (See blog for more details). reCAPTCHA comes in the form of a widget that you can easily add to your blog, forum, registration form, etc.
+A Flutter plugin for Google ReCaptcha V2.
 
-Please check [docs](https://developers.google.com/recaptcha/intro) for further details.
+## Getting Started
 
-## Sign up for an API key pair
-To use reCAPTCHA, you need to [sign up for an API key pair](https://www.google.com/recaptcha/admin) for your site. The key pair consists of a site key and secret. The site key is used to display the widget on your site. The secret authorizes communication between your application backend and the reCAPTCHA server to verify the user's response. The secret needs to be kept safe for security purposes.
+This plugin requires `Webview` to use Google ReCaptcha.
+This plugin only supports **Google ReCAPTCHA V2** (not V3)
 
-Config 'android package name' to reCaptcha's admin console
-> You need to add 'android package name' to reCaptcha's [admin console](https://www.google.com/recaptcha/admin/create), or you will always get error: RECAPTCHA_INVALID_PACKAGE_NAME
+Obtain your own key & secret here: https://www.google.com/recaptcha
 
-## Usage
+**!!! Remember to add this domain into the reCaptcha setting or add your own domain: recaptcha-flutter-plugin.firebaseapp.com**
 
-### 1. Add dependency to [pubspec.yaml](https://dart.dev/tools/pub/dependencies)
-> dependencies:  
-> ....g_captcha: ^1.0.0
+Then test your API KEY at: https://recaptcha-flutter-plugin.firebaseapp.com/?api_key=API_KEY
 
-Don't forget this
-> flutter pub get
-    
-### 2. Import in dart file
-> import 'package:g_captcha/g_captcha.dart';
+Put `RecaptchaV2` widget into your widget tree (Usually inside `Stack` widget), **make sure it's placed on top of the tree and block all the behind interactions**:
 
-### 3. Config CAPTCHA_SITE_KEY and Call out 
-> const String CAPTCHA_SITE_KEY = "CAPTCHA_SITE_KEY_HERE";  
-> ...  
-> String tokenResult = await GCaptcha.reCaptcha(CAPTCHA_SITE_KEY);  
-> print('tokenResult: $tokenResult');
+- You can change the plugin url for the captcha domain insde the RecaptchaV2 or leave it by default non adding the line:
 
-![avatar](https://github.com/nnnggel/gCaptcha/blob/master/snapshot.png)
-
-## Verify token (java with okhttp demo)
-> https://developers.google.com/recaptcha/docs/verify
+```dart
+pluginURL: "https://mypersonalurl.com"
 ```
-package com.yuanchongyu.recapcha;
 
-import okhttp3.FormBody;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import org.json.JSONObject;
+**if you have setted your own domain, specify the domain used**
 
-public class Main {
 
-    // TODO
-    private static final String RECAPTCHA_SECRET_KEY = "RECAPTCHA_SECRET_KEY_HERE";
-
-    private static final String RECAPTCHA_VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify";
-
-    public static void main(String[] args) throws Exception {
-        // TODO
-        boolean success = verify("03AGdBq25vYY080h0Wvk-XpCkhvEoBxS2YK-EbGqWq5Ru_hWxCt2XfGr7S8LMB9z3aU411MGXRoTSIQ_OvBeFSIqLNsxLyOUDCFOXzh1DYGMbaMvnc0FfqnfFc1yWu3fK6fYNSb09QVbUKeuifpYo6GBX6GiqOEu-AjIbZMz8TxkBUbBw9VpQG2PmfREPNwV6dWVpEQe4-oy-SP3IL94DFdTrkRoYQoCfZsSpTuGXh1gepxuqn-VJOBbxeFy_Qsha1BFYRvp2reifIX9Fd18jcToYI1OVLhQmRgM1shYNoszAnRjVSGFNfE6M");
-        System.out.println("verify result: " + success);
-    }
-
-    private static boolean verify(String token) throws Exception {
-        RequestBody formBody = new FormBody.Builder().add("secret", RECAPTCHA_SECRET_KEY).add("response", token)
-            .build();
-        Response response = post(RECAPTCHA_VERIFY_URL, formBody);
-        String resp = response.body().string();
-        return new JSONObject(resp).getBoolean("success");
-    }
-
-    private Response post(String url, RequestBody body) throws IOException {
-        Request request = new Request.Builder().url(url).post(body).build();
-        Response response = httpClient.newCall(request).execute();
-        if (!response.isSuccessful()) {
-            throw new IOException("request error: " + response);
-        }
-        return response;
-    }
-}
-
+- To show the Cancel Button with the captcha controller set the boolean to `true`:
+```dart
+visibleCancelBottom: true
 ```
+
+ **otherwise it won't appear**
+
+- Set the Text for the Cancel buttom or leave it by default:
+```dart
+textCancelButtom: "CANCEL CAPTCHA"
+```
+
+### Example
+
+```dart
+RecaptchaV2Controller recaptchaV2Controller = RecaptchaV2Controller();
+...
+RecaptchaV2(
+    apiKey: "YOUR_API_KEY", // for enabling the reCaptcha
+    apiSecret: "YOUR_API_SECRET", // for verifying the responded token
+    pluginURL: "https://mypersonalurl.com",
+	visibleCancelBottom: true,
+	textCancelButtom: "CUSTOM CANCEL CAPTCHA BUTTOM TEXT",
+	controller: recaptchaV2Controller,
+    onVerifiedError: (err){
+        print(err);
+    },
+    onVerifiedSuccessfully: (success) {
+        setState(() {
+            if (success) {
+                // You've been verified successfully.
+            } else {
+                // "Failed to verify.
+            }
+        });
+    },
+),
+```
+
+The `RecaptchaV2` widget is hidden by default, you need to attach the `RecaptchaV2Controller` and call `show()` method when needed. Like this:
+```dart
+recaptchaV2Controller.show();
+```
+
+Manually hide it:
+```dart
+recaptchaV2Controller.hide();
+```
+
+That's it!
+
